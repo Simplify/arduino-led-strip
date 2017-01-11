@@ -29,19 +29,22 @@ enum all_modes {
   solid_white,
   solid_red,
   solid_blue,
-  solid_green,
-  solid_yellow,
   solid_purple,
-  one_at_a_time,
-  bars,
+  moving_bars,
   fade,
   fire,
   twinkle,
   twinkle_random,
   twinkle_single,
-  sparkle,
   snow_sparkle,
+  // Disabled:
+  one_at_a_time,
+  bars,
   strobe,
+  solid_green,
+  solid_yellow,
+  sparkle,
+  // Last
   last = snow_sparkle
 };
 
@@ -93,6 +96,7 @@ void runSingleColor(CRGB color) {
     leds[i] = color;
   }
   FastLED.show();
+  delay(200);
 }
 
 // Loop red, green or blue single LED
@@ -142,7 +146,7 @@ void runBars() {
 
 // Fade in and fade out in red, green or blue color
 void runFade() {
-  for (int j = 0; j < 3; j++ ) {
+  for (int j = 0; j < 1; j++ ) { // only red
     memset(leds, 0, NUM_LEDS * 3);
     for (int k = 0; k < 256; k++) {
       for (int i = 0; i < NUM_LEDS; i++ ) {
@@ -246,6 +250,7 @@ void runSparkle() {
   leds[led] = CRGB::White;
   FastLED.show();
   leds[led] = CRGB::Black;
+  delay(5);
 }
 
 // turn whole strip almost full white (0x101010)
@@ -261,25 +266,49 @@ void runSnowSparkle() {
   delay(200);
 }
 
+// Moving bars
+void runMovingBars() {
+  boolean on = false;
+  int start = 0;
+  while (true) {
+    memset(leds, 0x00, NUM_LEDS * 3);
+    for (int i = (0-start); i < (NUM_LEDS-start); i++ ) {
+      if (run_mode != moving_bars) return;
+      if (i % 25 == 0) on = !on;
+      if (on) leds[i + start] = CRGB::DarkViolet;
+    }
+    FastLED.show();
+    start++;
+    if (start == 25) { 
+      start = 0;
+      on = !on;
+    }
+    delay(10);
+  }
+}
+
 // Main loop
 void loop() {
-  // solid colors
-  if (run_mode == off) runSingleColor(CRGB::Black); // Off
-  if (run_mode == solid_white) runSingleColor(CRGB::White);
-  if (run_mode == solid_red) runSingleColor(CRGB::Red);
-  if (run_mode == solid_blue) runSingleColor(CRGB::Blue);
-  if (run_mode == solid_green) runSingleColor(CRGB::Green);
-  if (run_mode == solid_yellow) runSingleColor(CRGB::Yellow);
-  if (run_mode == solid_purple) runSingleColor(CRGB::Purple);
-  // effects
-  if (run_mode == one_at_a_time) runOneAtATime();
-  if (run_mode == bars) runBars();
-  if (run_mode == fade) runFade();
-  if (run_mode == fire) runFire();
-  if (run_mode == strobe) runStrobe();
-  if (run_mode == twinkle) runTwinkle(false, false);
-  if (run_mode == twinkle_random) runTwinkle(false, true);
-  if (run_mode == twinkle_single) runTwinkle(true, false);
-  if (run_mode == sparkle) runSparkle();
-  if (run_mode == snow_sparkle) runSnowSparkle();
+  switch (run_mode) {
+    // solid colors
+    case off: runSingleColor(CRGB::Black); break;
+    case solid_white: runSingleColor(CRGB::White); break;
+    case solid_red: runSingleColor(CRGB::Red); break;
+    case solid_blue: runSingleColor(CRGB::Blue); break;
+    case solid_purple: runSingleColor(CRGB::Purple); break;
+    case solid_green: runSingleColor(CRGB::Green); break;
+    case solid_yellow: runSingleColor(CRGB::Yellow); break;
+    // effects
+    case one_at_a_time: runOneAtATime(); break;
+    case bars: runBars(); break;
+    case moving_bars: runMovingBars(); break;
+    case fade: runFade(); break;
+    case fire: runFire(); break;
+    case strobe: runStrobe(); break;
+    case twinkle: runTwinkle(false, false); break;
+    case twinkle_random: runTwinkle(false, true); break;
+    case twinkle_single: runTwinkle(true, false); break;
+    case sparkle: runSparkle(); break;
+    case snow_sparkle: runSnowSparkle(); break;
+  }
 }
