@@ -36,17 +36,17 @@ enum all_modes {
   twinkle,
   twinkle_random,
   snow_sparkle,
-  twinkle_single,
-  one_at_a_time,
-  bars,
   strobe,
   rainbow_cycle,
   rainbow_loop,
   // Disabled:
   solid_green,
   solid_yellow,
+  twinkle_single,
+  one_at_a_time,
+  bars,
   // Last
-  last = strobe
+  last = rainbow_loop
 };
 
 volatile all_modes run_mode = off;  // LED effects mode setting
@@ -201,9 +201,9 @@ void runStrobe() {
     CHSV color = CHSV(random(0, 255), random(200, 255), random(200, 255));
     for (int i = 0; i <= random(2, 6); i++) {
       FastLED.showColor(color);
-      delay(50);
+      delay(75);
       FastLED.showColor(CRGB::Black);
-      delay(50);
+      delay(75);
     }
     if (run_mode != strobe) return;
     delay(1000);
@@ -255,28 +255,6 @@ void runSnowSparkle() {
   }
 }
 
-// Moving bars
-void runMovingBars() {
-  boolean on = false;
-  int start = 0;
-  CHSV color = CHSV(random(0, 255), random(200, 255), random(200, 255));
-  while (true) {
-    memset(leds, 0x00, NUM_LEDS * 3);
-    for (int i = (0 - start); i < (NUM_LEDS - start); i++ ) {
-      if (run_mode != moving_bars) return;
-      if (i % 25 == 0) on = !on;
-      if (on) leds[i + start] = color;
-    }
-    FastLED.show();
-    start++;
-    if (start == 25) {
-      start = 0;
-      on = !on;
-    }
-    delay(10);
-  }
-}
-
 // Cycle rainbow colors on whole strip
 void runRainbowCycle() {
   while (true) {
@@ -300,6 +278,31 @@ void runRainbowLoop() {
     delay(3);
     hue++;
     if (hue > 255) hue = 0;
+  }
+}
+
+// Moving bars
+void runMovingBars() {
+  boolean on = false;
+  int start = 0;
+  uint8_t hue = 0;
+  while (true) {
+    CHSV color = CHSV(hue, 255, 255);
+    memset(leds, 0x00, NUM_LEDS * 3);
+    for (int i = (0 - start); i < (NUM_LEDS - start); i++ ) {
+      if (run_mode != moving_bars) return;
+      if (i % 25 == 0) on = !on;
+      if (on) leds[i + start] = color;
+    }
+    FastLED.show();
+    start++;
+    if (start == 25) {
+      start = 0;
+      on = !on;
+    }
+    hue++;
+    if (hue > 255) hue = 0;
+    delay(10);
   }
 }
 
